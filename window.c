@@ -11,22 +11,7 @@
 #define SH 480 /* screen height */
 
 
-static int _pw = 12, _ph = 12;
-static int _plateau[] = {
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-  1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-};
-
+static int _pw = 1, _ph = 1;
 
 static void _quit(void);
 
@@ -53,18 +38,14 @@ static void dis(void) {
   elDisable(EL_ALPHA);
   elEnable(EL_BACKFACE_CULLING);
   elEnable(EL_TEXTURE);
-  for(int i = 0; i < _ph; ++i) {
-    for(int j = 0; j < _pw; ++j) {
-      if(_plateau[i * _pw + j] == 0) continue;
-      _mat4identite(model);
-      _scale(model, 0.3f, 0.3f, 0.3f);
-      _translate(model, j - (_pw - 1.0f) / 2.0f, i - (_ph - 1.0f) / 2.0f, -4.0f);
-      _scale(model, 0.4f, 0.4f, 0.4f);
-      _rotate(model, 0.5f * periode * 180.0f / M_PI, 0, 0, 1); /* on fait tourner doucement chaque cube */
-      elTransformations(_cube, model, view, projection);
-      elDraw(_cube);
-    }
-  }
+
+  _mat4identite(model);
+  _scale(model, 0.3f, 0.3f, 0.3f);
+  _translate(model, 1.0f, 1.0f, 10.0f);
+  _scale(model, 0.4f, 0.4f, 0.4f);
+  _rotate(model, 0.5f * periode * 180.0f / M_PI, 0, 0, 1); /* on fait tourner doucement chaque cube */
+  elTransformations(_cube, model, view, projection);
+  elDraw(_cube);
 
   elDisable(EL_ALPHA);
   elDisable(EL_BACKFACE_CULLING);
@@ -87,15 +68,6 @@ static void dis(void) {
   _scale(model, 0.3f, 0.2f, 0.3f);
   elTransformations(_sphere, model, view, projection);
   elDraw(_sphere);
-  
-
-  elEnable(EL_ALPHA);
-  _mat4identite(model);
-  _scale(model, 0.2f, 0.2f, 0.2f);
-  _translate(model, -10.0f, 8.0f, -2.5f);
-  _rotate(model, a += 0.2f, 0.0f, 1.0f, 0.0f);
-  elTransformations(_cube, model, view, projection);
-  elDraw(_cube);
 
   elUpdate();
 
