@@ -10,8 +10,9 @@
 #define SW 640 /* screen width */
 #define SH 480 /* screen height */
 
-
 static int _pw = 1, _ph = 1;
+static float cubPosition[3];
+static float spherePosition[3]; 
 
 static void _quit(void);
 
@@ -29,7 +30,7 @@ static void dis(void) {
   /* on teste la vue avec un simple translate */
   /* n'oubliez pas _lookAt si vous en avez besoin */
   _mat4identite(view);
-  _translate(view, 0.0f, 0.0f, -5.5f);
+  _translate(view, 0.0f, 0.0f, -6.5f);
 
   static float a = 0.0f, b = 0.0f, c = 0.0f, z_ball = 0.0f, periode = 0.0f;
   elClear();
@@ -39,14 +40,37 @@ static void dis(void) {
   elEnable(EL_BACKFACE_CULLING);
   elEnable(EL_TEXTURE);
 
+/*
   _mat4identite(model);
   _scale(model, 0.3f, 0.3f, 0.3f);
   _translate(model, 1.0f, 1.0f, 10.0f);
   _scale(model, 0.4f, 0.4f, 0.4f);
-  _rotate(model, 0.5f * periode * 180.0f / M_PI, 0, 0, 1); /* on fait tourner doucement chaque cube */
+  //_rotate(model, 0.5f * periode * 180.0f / M_PI, 0, 0, 1); //on fait tourner doucement chaque cube
+  elTransformations(_cube, model, view, projection);
+  elDraw(_cube);
+*/
+  // Get mouse coordinates
+  int mouseX, mouseY;
+  SDL_GetMouseState(&mouseX, &mouseY);
+
+  // Définissez un facteur d'échelle pour augmenter la portée du mouvement
+  float scaleFactor = 1.0f;
+
+  // Appliquez le facteur d'échelle aux coordonnées de la souris
+  float scaledMouseX = mouseX / (float)SW * 2.0f - 1.0f * scaleFactor;
+  float scaledMouseY = -(mouseY / (float)SH * 2.0f - 1.0f) * scaleFactor;
+
+  _mat4identite(model);
+  _scale(model, 0.3f, 0.3f, 0.3f);
+  _translate(model, scaledMouseX, scaledMouseY, 17.0f);
+  _scale(model, 0.4f, 0.4f, 0.4f);
+
+  elEnable(EL_ALPHA);
+  elEnable(EL_BACKFACE_CULLING);
   elTransformations(_cube, model, view, projection);
   elDraw(_cube);
 
+// Quad
   elDisable(EL_ALPHA);
   elDisable(EL_BACKFACE_CULLING);
   elDisable(EL_TEXTURE);
@@ -66,10 +90,25 @@ static void dis(void) {
   _rotate(model, -b, 0.0f, 0.0f, 1.0f);
   _rotate(model, c, 0.0f, 1.0f, 0.0f);
   _scale(model, 0.3f, 0.2f, 0.3f);
+
   elTransformations(_sphere, model, view, projection);
   elDraw(_sphere);
 
   elUpdate();
+
+  cubPosition[0] = model[0]; // élément à la 4e colonne et 1ère ligne
+  cubPosition[1] = model[1]; // élément à la 4e colonne et 2e ligne
+  cubPosition[2] = model[2]; // élément à la 4e colonne et 3e ligne
+
+  spherePosition[0] = model[0];  // Coordonnée x
+  spherePosition[1] = model[1];  // Coordonnée y
+  spherePosition[2] = model[2];  // Coordonnée z
+
+  printf("Cube Position: %f, %f, %f\n", cubPosition[0], cubPosition[1], cubPosition[2]);
+  printf("Sphere Position: %f, %f, %f\n", spherePosition[0], spherePosition[1], spherePosition[2]);
+  if (cubPosition[0] > spherePosition[0]){
+    elSetTexture(_cube, _terre);
+  }
 
   /* récupération du temps (important pour simulation (idle)) */
   static Uint32 t0 = 0; 
@@ -87,7 +126,7 @@ static void dis(void) {
 
 int main(int argc, char ** argv) {
   const vec4 rouge = { 0.7f, 0.0f, 0.0f, 1.0f };
-  const vec4 blanc = { 1.0f, 1.0f, 1.0f, 0.8f };
+  const vec4 blanc = { 1.0f, 1.0f, 1.0f, 1.0f };
   const vec4 bleu  = { 0.4f, 0.4f, 1.0f, 1.0f };
   if(!elInit(argc, argv, /* args du programme */
 	     "Ellule' Hello World", /* titre */
@@ -100,9 +139,9 @@ int main(int argc, char ** argv) {
   /* SDL_GL_SetSwapInterval(1); si vous souhaitez la synchro verticale */
   elEnable(EL_SHADING);
   elEnable(EL_TEXTURE);
-  _terre    = elGenTexture("images/terre.bmp");
+  _terre = elGenTexture("images/terre.bmp");
   _feuilles = elGenTexture("images/feuilles.bmp");
-  _parquet  = elGenTexture("images/parquet.bmp");
+  _parquet = elGenTexture("images/parquet.bmp");
   _quad = elQuad();
   _cube = elCube();
   _sphere = elSphere(11, 11);
@@ -112,8 +151,8 @@ int main(int argc, char ** argv) {
   elSetTexture(_sphere, _parquet);
   /* on change les couleurs par défaut */
   /* possible de le faire dans dis */
-  elSetColor(_quad, rouge);
   elSetColor(_cube, blanc);
+  elSetColor(_quad, rouge); //background
   elSetColor(_sphere, bleu);
   atexit(_quit);
   gl4duwDisplayFunc(dis);
