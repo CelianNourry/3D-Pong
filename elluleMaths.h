@@ -7,6 +7,12 @@
 extern "C" {
 #endif
 
+  typedef struct {
+    float tx;
+    float ty;
+    float tz;
+} coordonneesModele; //Structure qui stocke les coordonées d'un modèle
+
   typedef float mat4[16];
 
   /* typedef struct vec4 vec4; */
@@ -156,7 +162,9 @@ extern "C" {
 
   /*!\brief ajoute (multiplication droite) une translation à la
    * matrice \a m */
-  static inline void _translate(float * m, float tx, float ty, float tz) {
+  static inline coordonneesModele _translate(float * m, float tx, float ty, float tz) {
+    coordonneesModele result;
+
     mat4 t = { 1.0f, 0.0f, 0.0f, tx,
 	       0.0f, 1.0f, 0.0f, ty,
 	       0.0f, 0.0f, 1.0f, tz,
@@ -164,6 +172,13 @@ extern "C" {
     mat4 cpy;
     memcpy(cpy, m, sizeof cpy);
     _mat4mult(m, cpy, t);
+    
+    // Les coordonées du modèle
+    result.tx = tx;
+    result.ty = ty;
+    result.tz = tz;
+
+    return result;
   }
 
   /*!\brief ajoute (multiplication droite) un scale à la

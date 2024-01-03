@@ -11,12 +11,10 @@
 #define SH 480 /* screen height */
 
 static int _pw = 1, _ph = 1;
-static float cubPosition[3];
-static float spherePosition[3]; 
 
 static void _quit(void);
 
-static surface_t * _quad = NULL, * _cube = NULL, * _sphere = NULL;
+static surface_t * _quad = NULL, * _cube = NULL, * _balle = NULL;
 /* les textures utilisées dans cet exemple */
 static texture_t * _terre = NULL, * _feuilles = NULL, * _parquet = NULL;
 
@@ -62,7 +60,7 @@ static void dis(void) {
 
   _mat4identite(model);
   _scale(model, 0.3f, 0.3f, 0.3f);
-  _translate(model, scaledMouseX, scaledMouseY, 17.0f);
+  coordonneesModele cubeTransPos = _translate(model, scaledMouseX, scaledMouseY, 17.0f);
   _scale(model, 0.4f, 0.4f, 0.4f);
 
   elEnable(EL_ALPHA);
@@ -77,38 +75,26 @@ static void dis(void) {
   elDisable(EL_SHADING);
   _mat4identite(model);
   _translate(model, 0.0f, 0.0f, -5.0f);
-  _scale(model, 4.0f, 4.0f, 4.0f);
+  //_scale(model, 4.0f, 4.0f, 4.0f);
   elTransformations(_quad, model, view, projection);
-  elDraw(_quad);
+  //elDraw(_quad);
   
   elEnable(EL_SHADING);
 
   elEnable(EL_TEXTURE);
   elEnable(EL_BACKFACE_CULLING);
   _mat4identite(model);
-  _translate(model, 1.2f, 0.7f, z_ball);
+  coordonneesModele balleTransPos = _translate(model, 0.0f, 0.0f, z_ball);
   _rotate(model, -b, 0.0f, 0.0f, 1.0f);
-  _rotate(model, c, 0.0f, 1.0f, 0.0f);
   _scale(model, 0.3f, 0.2f, 0.3f);
 
-  elTransformations(_sphere, model, view, projection);
-  elDraw(_sphere);
+  elTransformations(_balle, model, view, projection);
+  elDraw(_balle);
 
   elUpdate();
 
-  cubPosition[0] = model[0]; // élément à la 4e colonne et 1ère ligne
-  cubPosition[1] = model[1]; // élément à la 4e colonne et 2e ligne
-  cubPosition[2] = model[2]; // élément à la 4e colonne et 3e ligne
-
-  spherePosition[0] = model[0];  // Coordonnée x
-  spherePosition[1] = model[1];  // Coordonnée y
-  spherePosition[2] = model[2];  // Coordonnée z
-
-  printf("Cube Position: %f, %f, %f\n", cubPosition[0], cubPosition[1], cubPosition[2]);
-  printf("Sphere Position: %f, %f, %f\n", spherePosition[0], spherePosition[1], spherePosition[2]);
-  if (cubPosition[0] > spherePosition[0]){
-    elSetTexture(_cube, _terre);
-  }
+  printf("Cube Position: %f, %f, %f\n", cubeTransPos.tx, cubeTransPos.ty, cubeTransPos.tz);
+  printf("Sphere Position: %f, %f, %f\n", balleTransPos.tx, balleTransPos.ty, balleTransPos.tz);
 
   /* récupération du temps (important pour simulation (idle)) */
   static Uint32 t0 = 0; 
@@ -119,7 +105,7 @@ static void dis(void) {
   
   z_ball = -5.0f * sin(periode);
 
-  periode += 2.0f * M_PI * dt / 5.0f; /* un aller-retour en 5 secondes */ 
+  periode += 2.0f * M_PI * dt / 3.0f; /* un aller-retour en 5 secondes */ 
   
   /* SDL_Delay(50); sin on souhaite ralentir exprès le FPS, pour tester le mvt par rapport au temps */
 }
@@ -144,16 +130,16 @@ int main(int argc, char ** argv) {
   _parquet = elGenTexture("images/parquet.bmp");
   _quad = elQuad();
   _cube = elCube();
-  _sphere = elSphere(11, 11);
+  _balle = elSphere(11, 11);
   /* on affecte des textures aux surfaces */
   elSetTexture(_quad, _terre);
   elSetTexture(_cube, _feuilles);
-  elSetTexture(_sphere, _parquet);
+  elSetTexture(_balle, _parquet);
   /* on change les couleurs par défaut */
   /* possible de le faire dans dis */
   elSetColor(_cube, blanc);
   elSetColor(_quad, rouge); //background
-  elSetColor(_sphere, bleu);
+  elSetColor(_balle, bleu);
   atexit(_quit);
   gl4duwDisplayFunc(dis);
   gl4duwMainLoop();
@@ -170,9 +156,9 @@ void _quit(void) {
     elFreeSurface(_cube);
     _cube = NULL;
   }
-  if(_sphere) {
-    elFreeSurface(_sphere);
-    _sphere = NULL;
+  if(_balle) {
+    elFreeSurface(_balle);
+    _balle = NULL;
   }
   if(_terre) {
     elFreeTexture(_terre);
