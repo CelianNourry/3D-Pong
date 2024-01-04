@@ -10,6 +10,8 @@
 #define SW 640 /* screen width */
 #define SH 480 /* screen height */
 
+#define z_cube 13
+
 static int _pw = 1, _ph = 1;
 
 static void _quit(void);
@@ -20,17 +22,12 @@ static texture_t * _terre = NULL, * _feuilles = NULL, * _parquet = NULL;
 
 static void dis(void) {
   mat4 projection, view, model;
-  /* on teste les matrices de projection */
-  /* _ortho2D(projection, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f); */
   _frustum(projection, -1.0f, 1.0f, -SH / (float)SW, SH / (float)SW, 2.0f, 100.0f);
 
-
-  /* on teste la vue avec un simple translate */
-  /* n'oubliez pas _lookAt si vous en avez besoin */
   _mat4identite(view);
   _translate(view, 0.0f, 0.0f, -6.5f);
 
-  static float a = 0.0f, b = 0.0f, c = 0.0f, z_ball = 0.0f, periode = 0.0f;
+  static float a = 0.0f, b = 0.0f, c = 0.0f, z_ball = 0.0f, periode = 0.0f, speed = 0.1f;
   elClear();
 
   /* on teste plusieurs "model" pour des surfaces différentes */
@@ -38,15 +35,6 @@ static void dis(void) {
   elEnable(EL_BACKFACE_CULLING);
   elEnable(EL_TEXTURE);
 
-/*
-  _mat4identite(model);
-  _scale(model, 0.3f, 0.3f, 0.3f);
-  _translate(model, 1.0f, 1.0f, 10.0f);
-  _scale(model, 0.4f, 0.4f, 0.4f);
-  //_rotate(model, 0.5f * periode * 180.0f / M_PI, 0, 0, 1); //on fait tourner doucement chaque cube
-  elTransformations(_cube, model, view, projection);
-  elDraw(_cube);
-*/
   // Get mouse coordinates
   int mouseX, mouseY;
   SDL_GetMouseState(&mouseX, &mouseY);
@@ -55,59 +43,63 @@ static void dis(void) {
   float scaleFactor = 1.0f;
 
   // Appliquez le facteur d'échelle aux coordonnées de la souris
-  float scaledMouseX = mouseX / (float)SW * 2.0f - 1.0f * scaleFactor;
-  float scaledMouseY = -(mouseY / (float)SH * 2.0f - 1.0f) * scaleFactor;
+  float scaledMouseX = -((mouseX / (float)SW * 1.5f - 1.0f) * scaleFactor);
+  float scaledMouseY = (mouseY / (float)SH * 1.5f - 1.0f * scaleFactor);
 
   _mat4identite(model);
-  _scale(model, 0.3f, 0.3f, 0.3f);
-  coordonneesModele cubeTransPos = _translate(model, scaledMouseX, scaledMouseY, 17.0f);
-  _scale(model, 0.4f, 0.4f, 0.4f);
-
+  coordonneesModele cubeTransPos = _translate(model, scaledMouseX * 2, scaledMouseY * 2, z_cube);
   elEnable(EL_ALPHA);
   elEnable(EL_BACKFACE_CULLING);
-  elTransformations(_cube, model, view, projection);
-  elDraw(_cube);
-
-// Quad
-  elDisable(EL_ALPHA);
-  elDisable(EL_BACKFACE_CULLING);
-  elDisable(EL_TEXTURE);
-  elDisable(EL_SHADING);
-  _mat4identite(model);
-  _translate(model, 0.0f, 0.0f, -5.0f);
-  //_scale(model, 4.0f, 4.0f, 4.0f);
+  _scale(model, 0.8f, 0.8f, 0.8f);
   elTransformations(_quad, model, view, projection);
-  //elDraw(_quad);
-  
   elEnable(EL_SHADING);
-
   elEnable(EL_TEXTURE);
-  elEnable(EL_BACKFACE_CULLING);
+
   _mat4identite(model);
+  elEnable(EL_BACKFACE_CULLING);
   coordonneesModele balleTransPos = _translate(model, 0.0f, 0.0f, z_ball);
   _rotate(model, -b, 0.0f, 0.0f, 1.0f);
-  _scale(model, 0.3f, 0.2f, 0.3f);
-
+  _scale(model, 0.3f, 0.3f, 0.3f);
   elTransformations(_balle, model, view, projection);
+
   elDraw(_balle);
+  elDraw(_quad);
 
   elUpdate();
 
-  printf("Cube Position: %f, %f, %f\n", cubeTransPos.tx, cubeTransPos.ty, cubeTransPos.tz);
-  printf("Sphere Position: %f, %f, %f\n", balleTransPos.tx, balleTransPos.ty, balleTransPos.tz);
+  printf("Cube Position: %f, %f, %f\n", cubeTransPos.x, cubeTransPos.y, cubeTransPos.z);
+  printf("Sphere Position: %f, %f, %f\n", balleTransPos.x, balleTransPos.y, balleTransPos.z);
 
-  /* récupération du temps (important pour simulation (idle)) */
+  if (cubeTransPos.x > balleTransPos.x){
+    elSetTexture(_quad, _feuilles);
+  }
+  else{
+    elSetTexture(_quad, _parquet);
+  }
+
+  speed *= 1.00001; // Acceleration de la vitesse de la balle au fur et à mesure
+  z_ball += speed;
+
+  //Verification de la profondeur de la balle
+  if (z_ball <= 0.0f || z_ball >= 6.0f) {
+    speed = -speed;
+  }
+
+  if (balleTransPos.x + 0.0f > cubeTransPos.x){
+    if (balleTransPos.y >= cubeTransPos.y && balleTransPos.y <= cubeTransPos.y + 0.0f && cubeTransPos.z - 12.0f <= balleTransPos.z) {
+      speed = -speed;
+    }
+  }
+
+  /*
+  //Récupération du temps (important pour simulation (idle))
   static Uint32 t0 = 0; 
   Uint32 t = SDL_GetTicks();
   float dt = (t - t0) / 1000.0f;
   t0 = t;
-  /* fin de récupération du temps (dt) */
-  
-  z_ball = -5.0f * sin(periode);
 
-  periode += 2.0f * M_PI * dt / 3.0f; /* un aller-retour en 5 secondes */ 
-  
-  /* SDL_Delay(50); sin on souhaite ralentir exprès le FPS, pour tester le mvt par rapport au temps */
+  SDL_Delay(50); //si on souhaite ralentir exprès le FPS, pour tester le mvt par rapport au temps
+  */
 }
 
 int main(int argc, char ** argv) {
@@ -138,7 +130,7 @@ int main(int argc, char ** argv) {
   /* on change les couleurs par défaut */
   /* possible de le faire dans dis */
   elSetColor(_cube, blanc);
-  elSetColor(_quad, rouge); //background
+  elSetColor(_quad, blanc); //background
   elSetColor(_balle, bleu);
   atexit(_quit);
   gl4duwDisplayFunc(dis);

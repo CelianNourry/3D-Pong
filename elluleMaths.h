@@ -8,9 +8,9 @@ extern "C" {
 #endif
 
   typedef struct {
-    float tx;
-    float ty;
-    float tz;
+    float x;
+    float y;
+    float z;
 } coordonneesModele; //Structure qui stocke les coordonées d'un modèle
 
   typedef float mat4[16];
@@ -174,9 +174,9 @@ extern "C" {
     _mat4mult(m, cpy, t);
     
     // Les coordonées du modèle
-    result.tx = tx;
-    result.ty = ty;
-    result.tz = tz;
+    result.x = tx;
+    result.y = ty;
+    result.z = tz;
 
     return result;
   }
