@@ -56,55 +56,7 @@ surface_t * elQuad(void) {
   return s;
 }
 
-surface_t * elCube(void) {
-  const float
-    data[] = {
-	      /* front */
-	      -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-	      1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-	      -1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-	      1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-	      /* back */
-	      1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-	      -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-	      1.0f,  1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
-	      -1.0f,  1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-	      /* right */
-	      1.0f, -1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-	      1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-	      1.0f,  1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-	      1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-	      /* left */
-	      -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-	      -1.0f, -1.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-	      -1.0f,  1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-	      -1.0f,  1.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-	      /* top */
-	      -1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-	      1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-	      -1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-	      1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-	      /* bottom */
-	      -1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-	      1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-	      -1.0f, -1.0f,  1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-	      1.0f, -1.0f,  1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f
-  };
-  const int order[] = { 0, 1, 2, 2, 1, 3 };
-  surface_t * s = _new_surface(12);
-  int i, j, k, o;
-  vec4 blanc = { 1.0f, 1.0f, 1.0f, 1.0f };
-  for(i = 0, o = 0; i < 12; ++i)
-    for(j = 0; j < 3; ++j, ++o) {
-      k = 8 * (order[o % 6] + 4 * (i / 2));
-      memcpy(s->triangles[i].v[j].position, &(data[k]), 3 * sizeof *data);
-      s->triangles[i].v[j].position[3] = 1.0f;
-      memcpy(s->triangles[i].v[j].normal,   &(data[k + 3]), 3 * sizeof *data);
-      memcpy(s->triangles[i].v[j].texCoord, &(data[k + 6]), 2 * sizeof *data);
-      memcpy(s->triangles[i].v[j].color, blanc, sizeof blanc);
-    }
-  return s;  
-}
+//Suppression de elcube() car non utilisé
 
 surface_t * elSphere(int longitudes, int latitudes) {
   surface_t * s;

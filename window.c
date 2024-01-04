@@ -1,24 +1,24 @@
 /*!\file window.c
- * \brief Test de la lib Ellule réalisée dans le cadre du cours de L2
- * <<algo prog graphique>> en collaboration avec le groupe L2-B.
- * \author Farès Belhadj
- * \date septembre à décembre 2023
+ * Jeu de Pong en 3D Edition Plage
+ * Nourry Célian
+ * date : 5 janvier 2024
  */
 
 #include "elluleRaster.h"
+#include <time.h>
 
-#define SW 640 /* screen width */
-#define SH 480 /* screen height */
+#define SW 640 /* Largeur de l'écran */
+#define SH 480 /* Taille de l'écran */
 
-#define z_cube 13
-
-static int _pw = 1, _ph = 1;
+#define z_quad 13.0f
+#define z_adv_quad -10.0f
+#define TAILLE_QUAD 2.0f
+#define TAILLE_BALLE 0.3f
 
 static void _quit(void);
 
-static surface_t * _quad = NULL, * _cube = NULL, * _balle = NULL;
-/* les textures utilisées dans cet exemple */
-static texture_t * _terre = NULL, * _feuilles = NULL, * _parquet = NULL;
+static surface_t * _quad = NULL, * _adv_quad = NULL, * _balle = NULL, * _background = NULL;
+static texture_t * _ball = NULL, * _Cassius = NULL, * _Amicus = NULL, * _background_texture = NULL;
 
 static void dis(void) {
   mat4 projection, view, model;
@@ -27,27 +27,23 @@ static void dis(void) {
   _mat4identite(view);
   _translate(view, 0.0f, 0.0f, -6.5f);
 
-  static float a = 0.0f, b = 0.0f, c = 0.0f, z_ball = 0.0f, periode = 0.0f, speed = 0.1f;
+  static float a = 0.0f, b = 0.0f, c = 0.0f, x_ball = 0.0f, y_ball = 0.0f, z_ball = 0.0f, x_quad = 0.0f, y_quad = 0.0f, x_adv_quad = 0.0f, y_adv_quad = 0.0f, periode = 0.0f, speed = 0.1f, orientation_x = 0.0f, orientation_y = 0.0f, points = 0;
+  float attenuation_z = 2.0f + z_ball * 0.2f; //pour que x_ball ne dépasse pas les limites de la camera
   elClear();
 
-  /* on teste plusieurs "model" pour des surfaces différentes */
   elDisable(EL_ALPHA);
   elEnable(EL_BACKFACE_CULLING);
   elEnable(EL_TEXTURE);
 
-  // Get mouse coordinates
   int mouseX, mouseY;
   SDL_GetMouseState(&mouseX, &mouseY);
 
-  // Définissez un facteur d'échelle pour augmenter la portée du mouvement
-  float scaleFactor = 1.0f;
-
-  // Appliquez le facteur d'échelle aux coordonnées de la souris
-  float scaledMouseX = -((mouseX / (float)SW * 1.5f - 1.0f) * scaleFactor);
-  float scaledMouseY = (mouseY / (float)SH * 1.5f - 1.0f * scaleFactor);
+  //Coordonées de la souris
+  x_quad = -((mouseX / (float)SW * 1.5f - 1.0f)) * 2;
+  y_quad = (mouseY / (float)SH * 1.5f - 1.0f) * 2;
 
   _mat4identite(model);
-  coordonneesModele cubeTransPos = _translate(model, scaledMouseX * 2, scaledMouseY * 2, z_cube);
+  coordonneesModele cubeTransPos = _translate(model, x_quad, y_quad, z_quad);
   elEnable(EL_ALPHA);
   elEnable(EL_BACKFACE_CULLING);
   _scale(model, 0.8f, 0.8f, 0.8f);
@@ -57,81 +53,144 @@ static void dis(void) {
 
   _mat4identite(model);
   elEnable(EL_BACKFACE_CULLING);
-  coordonneesModele balleTransPos = _translate(model, 0.0f, 0.0f, z_ball);
-  _rotate(model, -b, 0.0f, 0.0f, 1.0f);
+  coordonneesModele balleTransPos = _translate(model, x_ball, y_ball, z_ball);
+  _rotate(model, 0.5f * periode * 180.0f / M_PI, 0.2, 0.5, 1); //On fait tourner la balle
   _scale(model, 0.3f, 0.3f, 0.3f);
   elTransformations(_balle, model, view, projection);
 
+  _mat4identite(model);
+  coordonneesModele cubeadvTransPos = _translate(model, x_adv_quad, y_adv_quad, z_adv_quad);
+  elEnable(EL_ALPHA);
+  elEnable(EL_BACKFACE_CULLING);
+  _scale(model, 0.8f, 0.8f, 0.8f);
+  elTransformations(_adv_quad, model, view, projection);
+  elEnable(EL_SHADING);
+  elEnable(EL_TEXTURE);
+
+  _mat4identite(model);
+  coordonneesModele backgroundTransPos = _translate(model, 0, 1.25, -10.5);
+  elEnable(EL_ALPHA);
+  elEnable(EL_BACKFACE_CULLING);
+  _scale(model, 10, 5.2, 10);
+  elTransformations(_background, model, view, projection);
+  elEnable(EL_SHADING);
+  elEnable(EL_TEXTURE);
+
+  elDraw(_background);
+  elDraw(_adv_quad);
   elDraw(_balle);
   elDraw(_quad);
 
   elUpdate();
 
-  printf("Cube Position: %f, %f, %f\n", cubeTransPos.x, cubeTransPos.y, cubeTransPos.z);
-  printf("Sphere Position: %f, %f, %f\n", balleTransPos.x, balleTransPos.y, balleTransPos.z);
-
-  if (cubeTransPos.x > balleTransPos.x){
-    elSetTexture(_quad, _feuilles);
-  }
-  else{
-    elSetTexture(_quad, _parquet);
-  }
-
-  speed *= 1.00001; // Acceleration de la vitesse de la balle au fur et à mesure
+  speed *= 1.0001; // Acceleration de la vitesse de la balle au fur et à mesure du temps
+  //On fait avancer la balle de façon constante
   z_ball += speed;
+  x_ball += orientation_x;
+  y_ball += orientation_y;
 
-  //Verification de la profondeur de la balle
-  if (z_ball <= 0.0f || z_ball >= 6.0f) {
+  x_adv_quad = x_ball;
+  y_adv_quad = y_ball;
+
+  //Represente l'adversaire, on triche car il est supposé tout le temps rattrapper la balle
+  if (z_ball <= -10.0f) {
     speed = -speed;
   }
 
-  if (balleTransPos.x + 0.0f > cubeTransPos.x){
-    if (balleTransPos.y >= cubeTransPos.y && balleTransPos.y <= cubeTransPos.y + 0.0f && cubeTransPos.z - 12.0f <= balleTransPos.z) {
-      speed = -speed;
+  //Quitte si le joueur perd
+  if (z_ball >= 5.0f){
+    //On reset la balle quand le joueur ne l'a pas rattrapé
+    x_ball = 0.0f;
+    y_ball = 0.0f;
+    z_ball = 0.0f;
+    orientation_x = 0.0f;
+    orientation_y = 0.0f;
+    points += 1; //Represente les points de l'adversaire
+
+    //On quitte si l'adversaire a 3 points
+    if (points >= 3){
+      _quit();
     }
   }
 
-  /*
-  //Récupération du temps (important pour simulation (idle))
+  //Murs invisibles aux côtés x
+  if (x_ball >= attenuation_z || x_ball <= -attenuation_z) {
+    orientation_x = -orientation_x;
+  }
+
+  //Murs invisibles aux côtés y
+  if (y_ball >= 0.5f || y_ball <= -0.5f) {
+    orientation_y = -orientation_y;
+  }
+
+  //La balle touche le joueur
+  if (x_ball + 0.3f > x_quad - TAILLE_QUAD && x_ball - 0.3f < x_quad + TAILLE_QUAD && y_ball + 0.3f > y_quad - TAILLE_QUAD && y_ball - 0.3f < y_quad + TAILLE_QUAD && z_ball + 0.3f >= 4.5f && z_ball + 0.3f <= 4.6f){
+    z_ball -= 0.2f;
+    
+    srand(time(NULL));
+
+    //La balle a une chance sur 2 d'aller vers un des deux côtés en touchant un mur invisible
+    int random = rand() % 2;
+    if (random == 0){
+      orientation_x += 0.05f;
+    }
+    else{
+      orientation_x -= 0.05f;
+    }
+
+    random = rand() % 2;
+    if (random == 0){
+      orientation_y += 0.01f;
+    }
+    else{
+      orientation_y -= 0.01f;
+    }
+    speed = -speed;
+  }
+
+  //Récupération du temps
   static Uint32 t0 = 0; 
   Uint32 t = SDL_GetTicks();
   float dt = (t - t0) / 1000.0f;
   t0 = t;
 
-  SDL_Delay(50); //si on souhaite ralentir exprès le FPS, pour tester le mvt par rapport au temps
-  */
+  periode += 2.0f * M_PI * dt / 5.0f;
 }
 
 int main(int argc, char ** argv) {
-  const vec4 rouge = { 0.7f, 0.0f, 0.0f, 1.0f };
   const vec4 blanc = { 1.0f, 1.0f, 1.0f, 1.0f };
-  const vec4 bleu  = { 0.4f, 0.4f, 1.0f, 1.0f };
-  if(!elInit(argc, argv, /* args du programme */
-	     "Ellule' Hello World", /* titre */
-	     1100, 825, SW, SH) /* largeur_f, hauteur_f, largeur_e, hauteur_e */) {
-    /* ici si échec de la création souvent lié à un problème d'absence
-     * de contexte graphique ou d'impossibilité d'ouverture d'un
-     * contexte OpenGL (au moins 3.2) */
+
+  if(!elInit(argc, argv,
+	     "Pong à la plage",
+	     1100, 825, SW, SH)){
     return 1;
   }
-  /* SDL_GL_SetSwapInterval(1); si vous souhaitez la synchro verticale */
+  
   elEnable(EL_SHADING);
   elEnable(EL_TEXTURE);
-  _terre = elGenTexture("images/terre.bmp");
-  _feuilles = elGenTexture("images/feuilles.bmp");
-  _parquet = elGenTexture("images/parquet.bmp");
+  //Génération des textures
+  _ball = elGenTexture("images/Balle.bmp");
+  _Cassius = elGenTexture("images/Cassius.bmp");
+  _Amicus = elGenTexture("images/Amicus.bmp");
+  _background_texture = elGenTexture("images/Beach.bmp");
+
   _quad = elQuad();
-  _cube = elCube();
+  _adv_quad = elQuad();
+  _background = elQuad();
   _balle = elSphere(11, 11);
-  /* on affecte des textures aux surfaces */
-  elSetTexture(_quad, _terre);
-  elSetTexture(_cube, _feuilles);
-  elSetTexture(_balle, _parquet);
-  /* on change les couleurs par défaut */
-  /* possible de le faire dans dis */
-  elSetColor(_cube, blanc);
-  elSetColor(_quad, blanc); //background
-  elSetColor(_balle, bleu);
+
+  //Affectation des textures aux surfaces
+  elSetTexture(_quad, _Amicus);
+  elSetTexture(_adv_quad, _Cassius);
+  elSetTexture(_balle, _ball);
+  elSetTexture(_background, _background_texture);
+
+  //Couleur par défaut
+  elSetColor(_quad, blanc);
+  elSetColor(_adv_quad, blanc);
+  elSetColor(_balle, blanc);
+  elSetColor(_background, blanc);
+
   atexit(_quit);
   gl4duwDisplayFunc(dis);
   gl4duwMainLoop();
@@ -139,29 +198,37 @@ int main(int argc, char ** argv) {
 }
 
 void _quit(void) {
-  /* des choses à libérer ... */
+  //Libération des textures et des surfaces
   if(_quad) {
     elFreeSurface(_quad);
     _quad = NULL;
-  }
-  if(_cube) {
-    elFreeSurface(_cube);
-    _cube = NULL;
   }
   if(_balle) {
     elFreeSurface(_balle);
     _balle = NULL;
   }
-  if(_terre) {
-    elFreeTexture(_terre);
-    _terre = NULL;
+  if(_adv_quad) {
+    elFreeSurface(_adv_quad);
+    _adv_quad = NULL;
   }
-  if(_feuilles) {
-    elFreeTexture(_feuilles);
-    _feuilles = NULL;
+  if(_background) {
+    elFreeSurface(_background);
+    _background = NULL;
   }
-  if(_parquet) {
-    elFreeTexture(_parquet);
-    _parquet = NULL;
+  if(_Cassius) {
+    elFreeTexture(_Cassius);
+    _Cassius = NULL;
+  }
+  if(_Amicus) {
+    elFreeTexture(_Amicus);
+    _Amicus = NULL;
+  }
+  if(_ball) {
+    elFreeTexture(_ball);
+    _ball = NULL;
+  }
+  if(_background_texture) {
+    elFreeTexture(_background_texture);
+    _background_texture = NULL;
   }
 }
