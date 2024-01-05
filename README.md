@@ -5,6 +5,11 @@
 - Bibliothèque Ellule : Farès Belhadj en collaboration avec la L2-B
 - Pong 3D : Nourry Célian
 
+## Sources
+- Sprites :
+    - Joueur, Adversaire, Fond : Adastra de The Echo Project (https://echoproject.fandom.com/wiki/Adastra_(Visual_Novel))
+    - Balle : color-hex (https://www.color-hex.com/color-palette/68327)
+
 ## Description
 Il s'agit d'un jeu Pong en 3D avec un thème de plage. Une balle est lancée et doit être ratrapée par le joueur et une machine qui se font des passes
 
