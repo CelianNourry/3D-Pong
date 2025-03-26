@@ -27,7 +27,7 @@ static void dis(void) {
   _mat4identite(view);
   _translate(view, 0.0f, 0.0f, -6.5f);
 
-  static float a = 0.0f, b = 0.0f, c = 0.0f, x_ball = 0.0f, y_ball = 0.0f, z_ball = 0.0f, x_quad = 0.0f, y_quad = 0.0f, x_adv_quad = 0.0f, y_adv_quad = 0.0f, periode = 0.0f, speed = 0.1f, orientation_x = 0.0f, orientation_y = 0.0f, points = 0;
+  static float x_ball = 0.0f, y_ball = 0.0f, z_ball = 0.0f, x_quad = 0.0f, y_quad = 0.0f, x_adv_quad = 0.0f, y_adv_quad = 0.0f, periode = 0.0f, speed = 0.1f, orientation_x = 0.0f, orientation_y = 0.0f, points = 0;
   float attenuation_z = 2.0f + z_ball * 0.2f; //pour que x_ball ne dépasse pas les limites de la camera
   elClear();
 
@@ -43,7 +43,7 @@ static void dis(void) {
   y_quad = (mouseY / (float)SH * 1.5f - 1.0f) * 2;
 
   _mat4identite(model);
-  coordonneesModele cubeTransPos = _translate(model, x_quad, y_quad, z_quad);
+  _translate(model, x_quad, y_quad, z_quad);
   elEnable(EL_ALPHA);
   elEnable(EL_BACKFACE_CULLING);
   _scale(model, 0.8f, 0.8f, 0.8f);
@@ -53,13 +53,13 @@ static void dis(void) {
 
   _mat4identite(model);
   elEnable(EL_BACKFACE_CULLING);
-  coordonneesModele balleTransPos = _translate(model, x_ball, y_ball, z_ball);
+  _translate(model, x_ball, y_ball, z_ball);
   _rotate(model, 0.5f * periode * 180.0f / M_PI, 0.2, 0.5, 1); //On fait tourner la balle
   _scale(model, 0.3f, 0.3f, 0.3f);
   elTransformations(_balle, model, view, projection);
 
   _mat4identite(model);
-  coordonneesModele cubeadvTransPos = _translate(model, x_adv_quad, y_adv_quad, z_adv_quad);
+  _translate(model, x_adv_quad, y_adv_quad, z_adv_quad);
   elEnable(EL_ALPHA);
   elEnable(EL_BACKFACE_CULLING);
   _scale(model, 0.8f, 0.8f, 0.8f);
@@ -68,7 +68,7 @@ static void dis(void) {
   elEnable(EL_TEXTURE);
 
   _mat4identite(model);
-  coordonneesModele backgroundTransPos = _translate(model, 0, 1.25, -10.5);
+  _translate(model, 0, 0, -10.5);
   elEnable(EL_ALPHA);
   elEnable(EL_BACKFACE_CULLING);
   _scale(model, 10, 5.2, 10);
